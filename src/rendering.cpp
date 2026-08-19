@@ -53,8 +53,8 @@ void renderTopDown(std::vector<uint32_t>& img, const Resolutions res, const char
   }
 
   // draw player
-  size_t xCentre{ (size_t)(player.xPos*res.rectW + 2.5) },
-         yCentre{ (size_t)(player.yPos*res.rectH + 2.5) };
+  size_t xCentre{ (size_t)(player.xPos*res.rectW - 2.5) },
+         yCentre{ (size_t)(player.yPos*res.rectH - 2.5) };
   drawRect(img, res.winW, res.winH, xCentre, yCentre, 5, 5, packColour(0, 255, 255));
 
   // draw rays
