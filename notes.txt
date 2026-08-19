@@ -1,0 +1,3 @@
+- store user settings in .cfg files
+- store maps in .map files
+  - determine data representations for maps
