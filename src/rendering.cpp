@@ -118,8 +118,9 @@ void renderDualView(std::vector<uint32_t>& td, std::vector<uint32_t>& pv,
   }
 
   // draw player
-  drawRect(td, res.winW, res.winH, (size_t)(player.xPos*res.rectW),
-           (size_t)(player.yPos*res.rectH), 5, 5, packColour(0, 255, 255));
+  size_t xCentre{ (size_t)(player.xPos*res.rectW - 2.5) },
+         yCentre{ (size_t)(player.yPos*res.rectH - 2.5) };
+  drawRect(td, res.winW, res.winH, xCentre, yCentre, 5, 5, packColour(0, 255, 255));
     
   // draw player FOV
   double rayAngle{ player.viewAngle - player.FOV/2 }, stepSize{ player.FOV/res.winW };

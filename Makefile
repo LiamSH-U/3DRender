@@ -64,5 +64,7 @@ run:
 
 gifs: topdown.gif playerview.gif
 
+animation: run gifs
+
 clean:
 	rm -rf build *.ppm *.gif
