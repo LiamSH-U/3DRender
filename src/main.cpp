@@ -1,5 +1,4 @@
-#include "utilities.hpp"
-#include "rendering.hpp"
+#include "rendering_utils.hpp"
 #include "user_specs.hpp"
 #include <iostream>
 #include <fstream>
@@ -7,15 +6,16 @@
 #include <iomanip>
 #include <cassert>
 #include <cmath>
-#include <SDL2/SDL.h>
 
 int main() {
   // constants and whatnot
   constexpr Resolutions res{ 512, 512,
                              16, 16,
                              512/16, 512/16 };
-  std::vector<uint32_t> topDownMap(res.winW*res.winH, WHITE);
-  std::vector<uint32_t> frameBuffer(res.winW*res.winH, WHITE);
+
+  std::vector<uint32_t> topDownMap(res.winW*res.winH, packColour(255, 255, 255));
+  std::vector<uint32_t> frameBuffer(res.winW*res.winH, packColour(255, 255, 255));
+
   const char map[] = "0000111122223333"\
                      "1              3"\
                      "1      22222   3"\
@@ -33,6 +33,10 @@ int main() {
                      "3              3"\
                      "3555533333333333";
   assert(sizeof(map) == res.mapW*res.mapH + 1);
+
+  TexArray textures{ 0, 0, std::vector<uint32_t>() };
+  loadTexture("../resources/textures.png", textures);
+
   Player player{ 3.456, 2.345, degToRad(60.0), 1.523 };
   std::vector<Sprite> sprites{ {0, 1.834, 8.765}, {1, 5.323, 5.365}, {1, 4.123, 10.265} };
 
