@@ -1,7 +1,9 @@
 #include "rendering_utils.hpp"
 #include "rendering.hpp"
 #include "Textures.hpp"
-#include "user_specs.hpp"
+#include "FrameBuffer.hpp"
+#include "Map.hpp"
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -15,10 +17,10 @@ int main() {
                              16, 16,
                              512/16, 512/16 };
 
-  std::vector<uint32_t> topDownMap(res.winW*res.winH, packColour(255, 255, 255));
-  std::vector<uint32_t> frameBuffer(res.winW*res.winH, packColour(255, 255, 255));
+  FrameBuffer pv(res.winW, res.winH);
+  FrameBuffer td(res.winW, res.winH);
 
-  const char map[] = "0000111122223333"\
+  std::string mapS = "0000111122223333"\
                      "1              3"\
                      "1      22222   3"\
                      "1     1        3"\
@@ -34,7 +36,7 @@ int main() {
                      "3 2222222      3"\
                      "3              3"\
                      "3555533333333333";
-  assert(sizeof(map) == res.mapW*res.mapH + 1);
+  Map map(res.mapW, res.mapH, pv, mapS);
 
   Textures textures;
   if(!textures.loadTextures("./resources/walltextures.png")) { return -1; }
@@ -49,9 +51,8 @@ int main() {
 
     player.viewAngle += 2.0*M_PI/360.0;
 
-    //renderPlayerView(frameBuffer, res, map, player, playerviewName.str(), textures);
-    renderDualView(topDownMap, frameBuffer, res, map, player,
-                   topdownName.str(), playerviewName.str(), textures);
+    renderPlayerView(pv, map, player, playerviewName.str(), textures);
+    //renderDualView(pv, td, map, player, topdownName.str(), playerviewName.str(), textures);
   }
 
   return 0;

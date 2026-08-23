@@ -3,116 +3,113 @@
 #include "rendering_utils.hpp"
 #include <cmath>
 
-void renderTopDown(std::vector<uint32_t>& img, const Resolutions res, const char* map,
-                   const Player player, std::string filename, Textures& textures) {
-  img = std::vector<uint32_t>(res.winW*res.winH, WHITE);
+void renderTopDown(FrameBuffer& fb, Map& map, const Player player,
+                   std::string filename, Textures& textures) {
+  fb.wipe();
 
   // draw map
-  for(size_t j{ 0 }; j < res.mapH; j++) {
-    for(size_t i{ 0 }; i < res.mapW; i++) {
-      if(map[i + j*res.mapW] == ' ') { continue; }
+  for(size_t j{ 0 }; j < map.mapH; j++) {
+    for(size_t i{ 0 }; i < map.mapW; i++) {
+      char symbol{ map.getSymbol(i, j) };
+      if(symbol == ' ') { continue; }
 
-      size_t rectX{ i*res.rectW }, rectY{ j*res.rectH };
-      drawRect(img, res.winW, res.winH, rectX, rectY, res.rectW, res.rectH,
-               textures.getWallColour(map[i + j*res.mapW]));
+      size_t rectX{ i*map.gridW }, rectY{ j*map.gridH };
+      drawRect(fb, rectX, rectY, map.gridW, map.gridH,
+               textures.getWallColour(symbol));
     }
   }
 
   // draw player
-  size_t xCentre{ (size_t)(player.xPos*res.rectW - 2.5) },
-         yCentre{ (size_t)(player.yPos*res.rectH - 2.5) };
-  drawRect(img, res.winW, res.winH, xCentre, yCentre, 5, 5, packColour(0, 255, 255));
+  size_t xCentre{ (size_t)(player.xPos*map.gridW - 2.5) },
+         yCentre{ (size_t)(player.yPos*map.gridH - 2.5) };
+  drawRect(fb, xCentre, yCentre, 5, 5, packColour(0, 255, 255));
 
   // draw rays
-  double rayAngle{ player.viewAngle - player.FOV/2 }, stepSize{ player.FOV/res.winW };
-  for(size_t i{ 0 }; i < res.winW; ++i) {
+  double rayAngle{ player.viewAngle - player.FOV/2 }, stepSize{ player.FOV/fb.w };
+  for(size_t i{ 0 }; i < fb.w; ++i) {
     rayAngle += stepSize;
     for(float c{ 0 }; c < 100; c += 0.05) {
-      float cx{ player.xPos + c*cos(rayAngle) },
-            cy{ player.yPos + c*sin(rayAngle) };
+      float x{ player.xPos + c*cos(rayAngle) },
+            y{ player.yPos + c*sin(rayAngle) };
 
-      size_t xPx{ cx*res.rectW }, yPx{ cy*res.rectH };
-      img[xPx + yPx*res.winH] = packColour(0, 255, 255);
+      size_t xPx{ x*map.gridW }, yPx{ y*map.gridH };
+      fb.setPx(xPx, yPx, packColour(0, 255, 255));
     }
   }
 
-  writePPMImg(filename, img, res.winW, res.winH);
+  writePPMImg(filename, fb);
 }
 
-void renderPlayerView(std::vector<uint32_t>& img, const Resolutions res, const char* map,
-                      const Player player, std::string filename, Textures& textures) {
-  img = std::vector<uint32_t>(res.winW*res.winH, WHITE);
+void renderPlayerView(FrameBuffer& fb, Map& map, const Player player,
+                      std::string filename, Textures& textures) {
+  fb.wipe();
 
   // draw player view
-  double rayAngle{ player.viewAngle - player.FOV/2 }, stepSize{ player.FOV/res.winW };
-  for(size_t i{ 0 }; i < res.winW; ++i) {
+  double rayAngle{ player.viewAngle - player.FOV/2 }, stepSize{ player.FOV/fb.w };
+  for(size_t i{ 0 }; i < fb.w; ++i) {
     rayAngle += stepSize;
     for(float c{ 0 }; c < 100; c += 0.01) {
       float x{ player.xPos + c*cos(rayAngle) },
             y{ player.yPos + c*sin(rayAngle) };
-      char symbol{ map[(size_t)x + ((size_t)y)*res.mapW] };
-
+      char symbol{ map.getSymbol((size_t)x, (size_t)y) };
       if(symbol == ' ') { continue; }
 
-      size_t wallHeight{ res.winH/(c*cos(rayAngle - player.viewAngle)) };
+      size_t wallHeight{ fb.h/(c*cos(rayAngle - player.viewAngle)) };
 
-      textures.drawTextureSlice(symbol, x, y, res.winH/2 - wallHeight/2, wallHeight,
-                                img, res.winW, i);
+      textures.drawTextureSlice(symbol, x, y, fb.h/2 - wallHeight/2, wallHeight, fb, i);
 
       break;
     }
   }
 
-  writePPMImg(filename, img, res.winW, res.winH);
+  writePPMImg(filename, fb);
 }
 
-void renderDualView(std::vector<uint32_t>& td, std::vector<uint32_t>& pv,
-                    const Resolutions res, const char* map, const Player player,
+void renderDualView(FrameBuffer& pv, FrameBuffer& td, Map& map, const Player player,
                     std::string tdFilename, std::string pvFilename, Textures& textures) {
-  td = std::vector<uint32_t>(res.winW*res.winH, WHITE);
-  pv = std::vector<uint32_t>(res.winW*res.winH, WHITE);
+  pv.wipe();
+  td.wipe();
 
   // draw map
-  for(size_t j{ 0 }; j < res.mapH; j++) {
-    for(size_t i{ 0 }; i < res.mapW; i++) {
-      if(map[i + j*res.mapW] == ' ') { continue; }
+  for(size_t j{ 0 }; j < map.mapH; j++) {
+    for(size_t i{ 0 }; i < map.mapW; i++) {
+      char symbol{ map.getSymbol(i, j) };
+      if(symbol == ' ') { continue; }
 
-      size_t rectX{ i*res.rectW }, rectY{ j*res.rectH };
-      drawRect(td, res.winW, res.winH, rectX, rectY, res.rectW, res.rectH,
-               textures.getWallColour(map[i + j*res.mapW]));
+      size_t rectX{ i*map.gridW }, rectY{ j*map.gridH };
+      drawRect(td, rectX, rectY, map.gridW, map.gridH,
+               textures.getWallColour(symbol));
     }
   }
 
   // draw player
-  size_t xCentre{ (size_t)(player.xPos*res.rectW - 2.5) },
-         yCentre{ (size_t)(player.yPos*res.rectH - 2.5) };
-  drawRect(td, res.winW, res.winH, xCentre, yCentre, 5, 5, packColour(0, 255, 255));
+  size_t xCentre{ (size_t)(player.xPos*map.gridW - 2.5) },
+         yCentre{ (size_t)(player.yPos*map.gridH - 2.5) };
+  drawRect(td, xCentre, yCentre, 5, 5, packColour(0, 255, 255));
     
   // draw player FOV
-  double rayAngle{ player.viewAngle - player.FOV/2 }, stepSize{ player.FOV/res.winW };
-  for(size_t i{ 0 }; i < res.winW; ++i) {
+  double rayAngle{ player.viewAngle - player.FOV/2 }, stepSize{ player.FOV/pv.w };
+  for(size_t i{ 0 }; i < pv.w; ++i) {
     rayAngle += stepSize;
-    for(float c{ 0 }; c < 100; c += 0.05) {
+    for(float c{ 0 }; c < 100; c += 0.01) {
       float x{ player.xPos + c*cos(rayAngle) },
             y{ player.yPos + c*sin(rayAngle) };
-      char symbol{ map[(size_t)x + ((size_t)y)*res.mapW] };
-
+      char symbol{ map.getSymbol((size_t)x, (size_t)y) };
       if(symbol == ' ') {
-        size_t xPx{ x*res.rectW }, yPx{ y*res.rectH };
-        td[xPx + yPx*res.winH] = packColour(0, 255, 255);
+        size_t xPx{ x*map.gridW }, yPx{ y*map.gridH };
+        td.setPx(xPx, yPx, packColour(0, 255, 255));
 
         continue;
       }
 
-      size_t wallHeight{ res.winH/(c*cos(rayAngle - player.viewAngle)) };
+      size_t wallHeight{ pv.h/(c*cos(rayAngle - player.viewAngle)) };
 
-      textures.drawTextureSlice(symbol, x, y, res.winW/2 - wallHeight/2, wallHeight,
-                                pv, res.winW, i);
+      textures.drawTextureSlice(symbol, x, y, pv.w/2 - wallHeight/2, wallHeight, pv, i);
 
       break;
     }
   }
 
-  writePPMImg(tdFilename, td, res.winW, res.winH);
-  writePPMImg(pvFilename, pv, res.winW, res.winH);
+  writePPMImg(tdFilename, pv);
+  writePPMImg(pvFilename, td);
 }

@@ -1,6 +1,7 @@
 #include "Textures.hpp"
 
 #include "rendering_utils.hpp"
+#include "FrameBuffer.hpp"
 #include <iostream>
 #include <cstdint>
 #include <vector>
@@ -81,11 +82,10 @@ uint32_t Textures::getWallColour(const char symbol) { return pxMap[(symbol-'0')*
 
 void Textures::drawTextureSlice(const char symbol, const double x, const double y,
                                 const size_t colStart, const size_t colHeight,
-                                std::vector<uint32_t>& img, const size_t imgW,
-                                const size_t imgX) {
+                                FrameBuffer& fb, const size_t imgX) {
   size_t textureXCoord = getWallXCoord(x, y);
 
   for(size_t i{ 0 }; i < colHeight; ++i) {
-    img[imgX + (i+colStart)*imgW] = getPx(symbol, textureXCoord, (i*size)/colHeight);
+    fb.setPx(imgX, i + colStart, getPx(symbol, textureXCoord, (i*size)/colHeight));
   }
 }

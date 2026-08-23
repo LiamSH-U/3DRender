@@ -5,17 +5,16 @@
 #include <vector>
 #include "structs.h"
 #include "Textures.hpp"
+#include "FrameBuffer.hpp"
+#include "Map.hpp"
 
-// these function signatures are seriously fucked
+void renderTopDown(FrameBuffer& fb, Map& map, const Player player,
+                   std::string filename, Textures& textures);
 
-void renderTopDown(std::vector<uint32_t>& img, const Resolutions res, const char* map,
-                   const Player player, std::string filename, Textures& textures);
+void renderPlayerView(FrameBuffer& fb, Map& map, const Player player,
+                      std::string filename, Textures& textures);
 
-void renderPlayerView(std::vector<uint32_t>& img, const Resolutions res, const char* map,
-                      const Player player, std::string filename, Textures& textures);
-
-void renderDualView(std::vector<uint32_t>& td, std::vector<uint32_t>& pv,
-                    const Resolutions res, const char* map, const Player player,
+void renderDualView(FrameBuffer& pv, FrameBuffer& td, Map& map, const Player player,
                     std::string tdFilename, std::string pvFilename, Textures& textures);
 
 #endif

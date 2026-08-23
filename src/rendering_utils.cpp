@@ -1,6 +1,7 @@
 #include "rendering_utils.hpp"
 
 #include "structs.h"
+#include "FrameBuffer.hpp"
 #include "user_specs.hpp"
 #include <cassert>
 #include <iostream>
@@ -18,32 +19,28 @@ void unpackColour(const uint32_t &color, uint8_t &r, uint8_t &g, uint8_t &b, uin
   a = (color >> 24) & 255;
 }
 
-void drawRect(std::vector<uint32_t>& img, const size_t imgW, const size_t imgH,
-              const size_t xPos, const size_t yPos, const size_t rectW, const size_t rectH,
-              const uint32_t colour) {
-  assert(img.size() == imgW*imgH);
-
+void drawRect(FrameBuffer& fb, const size_t xPos, const size_t yPos,
+              const size_t rectW, const size_t rectH, const uint32_t colour) {
   for(size_t i{ 0 }; i < rectW; ++i) {
     for(size_t j{ 0 }; j < rectH; ++j) {
       size_t xPx{ xPos + i }, yPx{ yPos + j };
 
-      assert(xPx < imgW && yPx < imgH);
+      assert(xPx < fb.w && yPx < fb.h);
 
-      img[xPx + yPx*imgW] = colour;
+      fb.setPx(xPx, yPx, colour);
     }
   }
 }
 
-void writePPMImg(const std::string filename, const std::vector<uint32_t>& img,
-                  const size_t w, const size_t h) {
-  assert(img.size() == w*h);
-  
+void writePPMImg(const std::string filename, const FrameBuffer& fb) {
   std::ofstream ofs(filename, std::ios::binary);
-  ofs << "P6\n" << w << ' ' << h << "\n255\n";
+  ofs << "P6\n" << fb.w << ' ' << fb.h << "\n255\n";
   
-  for(size_t i{ 0 }; i < w*h; ++i) {
+  for(size_t i{ 0 }; i < fb.w*fb.h; ++i) {
     uint8_t r, g, b, a;
-    unpackColour(img[i], r, g, b, a);
+    unpackColour(fb.buffer[i], r, g, b, a);
     ofs << static_cast<char>(r) << static_cast<char>(g) << static_cast<char>(b);
   }
 }
+
+void drawSprite(Sprite& sprite, FrameBuffer& fb);

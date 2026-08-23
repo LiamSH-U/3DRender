@@ -5,7 +5,7 @@ CPPFLAGS = -Iinclude
 
 PROGRAM = saveimg
 
-SRCS = src/main.cpp src/Textures.cpp src/rendering_utils.cpp src/rendering.cpp src/user_specs.cpp
+SRCS = src/main.cpp src/Textures.cpp src/FrameBuffer.cpp src/Map.cpp src/rendering_utils.cpp src/rendering.cpp src/user_specs.cpp
 
 DBG_DIR = build/debug
 DBG_OBJ_DIR = $(DBG_DIR)/objs

@@ -3,6 +3,7 @@
 
 #include "structs.h"
 #include "Textures.hpp"
+#include "Map.hpp"
 #include "user_specs.hpp"
 #include <cstdint>
 #include <vector>
@@ -19,11 +20,9 @@ uint32_t packColour(const uint8_t r, const uint8_t g, const uint8_t b, const uin
 void unpackColour(const uint32_t &color, uint8_t &r, uint8_t &g, uint8_t &b, uint8_t &a);
 
 // should probably change this to take Resolutions& instead of 4 extra args
-void drawRect(std::vector<uint32_t>& img, const size_t imgW, const size_t imgH,
-              const size_t xPos, const size_t yPos, const size_t rectW, const size_t rectH,
-              const uint32_t colour);
+void drawRect(FrameBuffer& fb, const size_t xPos, const size_t yPos,
+              const size_t rectW, const size_t rectH, const uint32_t colour);
 
-void writePPMImg(const std::string filename, const std::vector<uint32_t>& img,
-                  const size_t w, const size_t h);
+void writePPMImg(const std::string filename, const FrameBuffer& fb);
 
 #endif

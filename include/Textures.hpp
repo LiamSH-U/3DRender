@@ -1,6 +1,7 @@
 #ifndef TEXTURES_HPP
 #define TEXTURES_HPP
 
+#include "FrameBuffer.hpp"
 #include <cstdint>
 #include <vector>
 #include <string>
@@ -17,8 +18,7 @@ public:
 
   void drawTextureSlice(const char symbol, const double x, const double y,
                         const size_t colStart, const size_t colHeight,
-                        std::vector<uint32_t>& img, const size_t imgW,
-                        const size_t imgX);
+                        FrameBuffer& fb, const size_t imgX);
 
 private:
   int w, h;
