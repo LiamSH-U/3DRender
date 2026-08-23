@@ -1,0 +1,33 @@
+#ifndef TEXTURES_HPP
+#define TEXTURES_HPP
+
+#include <cstdint>
+#include <vector>
+#include <string>
+
+class Textures {
+public:
+  Textures();
+
+  size_t textureSize();
+
+  bool loadTextures(const std::string filename);
+
+  uint32_t getWallColour(const char symbol);
+
+  void drawTextureSlice(const char symbol, const double x, const double y,
+                        const size_t colStart, const size_t colHeight,
+                        std::vector<uint32_t>& img, const size_t imgW,
+                        const size_t imgX);
+
+private:
+  int w, h;
+  size_t size, count;
+  std::vector<uint32_t> pxMap;
+
+  uint32_t getPx(const char symbol, const size_t x, const size_t y);
+
+  size_t getWallXCoord(const double x, const double y);
+};
+
+#endif

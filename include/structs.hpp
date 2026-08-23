@@ -14,12 +14,6 @@ struct Sprite {
   double xPos, yPos;
 };
 
-struct TexArray {
-  uint32_t (*getWallColour)(char);
-  size_t size, count;
-  std::vector<uint32_t> pxMap;
-};
-
 struct Resolutions {
   size_t winW, winH;
   size_t mapW, mapH;

@@ -5,7 +5,7 @@ CPPFLAGS = -Iinclude
 
 PROGRAM = saveimg
 
-SRCS = src/main.cpp src/rendering.cpp src/user_specs.cpp src/utilities.cpp
+SRCS = src/main.cpp src/Textures.cpp src/rendering_utils.cpp src/user_specs.cpp
 
 DBG_DIR = build/debug
 DBG_OBJ_DIR = $(DBG_DIR)/objs
@@ -56,13 +56,15 @@ topdown.gif:
 	rm -f topdown*.ppm
 
 playerview.gif:
-	convert -delay 5 -loop - playerview*.ppm playerview.gif
+	convert -delay 5 -loop 0 playerview*.ppm playerview.gif
 	rm -f playerview*.ppm
+
+gifs:
+	convert -delay 5 -loop 0 playerview*.ppm playerview.gif & convert -delay 5 -loop 0 topdown*.ppm topdown.gif & wait
+	rm -f *.ppm
 
 run:
 	./build/release/saveimg
-
-gifs: topdown.gif playerview.gif
 
 animation: run gifs
 

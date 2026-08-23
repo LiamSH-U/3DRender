@@ -6,14 +6,6 @@
 #include <iostream>
 #include <fstream>
 #include <cmath>
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-
-uint32_t TexArray::getWallType(char symbol) { return pxMap[(symbol-'0')*size]; }
-
-double degToRad(double degrees) { return (degrees/180)*M_PI; }
-
-double radToDeg(double radians) { return (radians*180)/M_PI; }
 
 uint32_t packColour(const uint8_t r, const uint8_t g, const uint8_t b, const uint8_t a) {
   return r + (g << 8) + (b << 16) + (a << 24);
@@ -56,47 +48,8 @@ void writePPMImg(const std::string filename, const std::vector<uint32_t>& img,
   }
 }
 
-bool loadTexture(const std::string filename, TexArray& texArray) {
-  int numChans{ -1 }, w, h;
-  unsigned char* img = stbi_load(filename.c_str(), &w, &h, &numChans, 0);
-  if(!img) {
-    std::cerr << "Error: textures failed to load" << std::endl;
-
-    return false;
-  }
-  else if(numChans != 4) {
-    std::cerr << "Error: texture must be a 32-bit image" << std::endl;
-    stbi_image_free(img);
-
-    return false;
-  }
-
-  texArray.count = w/h;
-  texArray.size = w/texArray.count;
-  if(w != h*(int)texArray.count) {
-    std::cerr << "Error: texture file must contain n square textures packed horizontally"
-              << std::endl;
-    stbi_image_free(img);
-
-    return false;
-  }
-
-  texArray.pxMap.resize(w*h);
-  for(size_t j{ 0 }; j < h; ++j) {
-    for(size_t i{ 0 }; i < w; ++i) {
-      uint8_t r{ img[4*(i + j*w) + 0] }, g{ img[4*(i + j*w) + 1] },
-              b{ img[4*(i + j*w) + 2] }, a{ img[4*(i + j*w) + 3] };
-      texArray.pxMap[i + j*w] = packColour(r, g, b, a);
-    }
-  }
-
-  stbi_image_free(img);
-
-  return true;
-}
-
 void renderTopDown(std::vector<uint32_t>& img, const Resolutions res, const char* map,
-                   const Player player, std::string filename, TexArray& textures) {
+                   const Player player, std::string filename, Textures& textures) {
   img = std::vector<uint32_t>(res.winW*res.winH, WHITE);
 
   // draw map
@@ -106,7 +59,7 @@ void renderTopDown(std::vector<uint32_t>& img, const Resolutions res, const char
 
       size_t rectX{ i*res.rectW }, rectY{ j*res.rectH };
       drawRect(img, res.winW, res.winH, rectX, rectY, res.rectW, res.rectH,
-               textures.getWallType(map[i + j*res.mapW]));
+               textures.getWallColour(map[i + j*res.mapW]));
     }
   }
 
@@ -132,26 +85,26 @@ void renderTopDown(std::vector<uint32_t>& img, const Resolutions res, const char
 }
 
 void renderPlayerView(std::vector<uint32_t>& img, const Resolutions res, const char* map,
-                      const Player player, std::string filename, TexArray& textures) {
+                      const Player player, std::string filename, Textures& textures) {
   img = std::vector<uint32_t>(res.winW*res.winH, WHITE);
 
   // draw player view
   double rayAngle{ player.viewAngle - player.FOV/2 }, stepSize{ player.FOV/res.winW };
   for(size_t i{ 0 }; i < res.winW; ++i) {
     rayAngle += stepSize;
-    for(float c{ 0 }; c < 100; c += 0.05) {
-      float cx{ player.xPos + c*cos(rayAngle) },
-            cy{ player.yPos + c*sin(rayAngle) };
+    for(float c{ 0 }; c < 100; c += 0.01) {
+      float x{ player.xPos + c*cos(rayAngle) },
+            y{ player.yPos + c*sin(rayAngle) };
+      char symbol{ map[(size_t)x + ((size_t)y)*res.mapW] };
 
-      if(map[(size_t)cx + ((size_t)cy)*res.mapW] != ' ') {
-        size_t wallHeight{ res.winH/(c*cos(rayAngle - player.viewAngle)) };
-        uint32_t wallColour{ textures.getWallType(map[(size_t)cx + ((size_t)cy)*res.mapW]) };
+      if(symbol == ' ') { continue; }
 
-        drawRect(img, res.winW, res.winH, i, res.winH/2 - wallHeight/2,
-                 1, wallHeight, wallColour);
+      size_t wallHeight{ res.winH/(c*cos(rayAngle - player.viewAngle)) };
 
-        break;
-      }
+      textures.drawTextureSlice(symbol, x, y, res.winH/2 - wallHeight/2, wallHeight,
+                                img, res.winW, i);
+
+      break;
     }
   }
 
@@ -160,7 +113,7 @@ void renderPlayerView(std::vector<uint32_t>& img, const Resolutions res, const c
 
 void renderDualView(std::vector<uint32_t>& td, std::vector<uint32_t>& pv,
                     const Resolutions res, const char* map, const Player player,
-                    std::string tdFilename, std::string pvFilename, TexArray& textures) {
+                    std::string tdFilename, std::string pvFilename, Textures& textures) {
   td = std::vector<uint32_t>(res.winW*res.winH, WHITE);
   pv = std::vector<uint32_t>(res.winW*res.winH, WHITE);
 
@@ -171,7 +124,7 @@ void renderDualView(std::vector<uint32_t>& td, std::vector<uint32_t>& pv,
 
       size_t rectX{ i*res.rectW }, rectY{ j*res.rectH };
       drawRect(td, res.winW, res.winH, rectX, rectY, res.rectW, res.rectH,
-               textures.getWallType(map[i + j*res.mapW]));
+               textures.getWallColour(map[i + j*res.mapW]));
     }
   }
 
@@ -185,28 +138,26 @@ void renderDualView(std::vector<uint32_t>& td, std::vector<uint32_t>& pv,
   for(size_t i{ 0 }; i < res.winW; ++i) {
     rayAngle += stepSize;
     for(float c{ 0 }; c < 100; c += 0.05) {
-      float cx{ player.xPos + c*cos(rayAngle) },
-            cy{ player.yPos + c*sin(rayAngle) };
+      float x{ player.xPos + c*cos(rayAngle) },
+            y{ player.yPos + c*sin(rayAngle) };
+      char symbol{ map[(size_t)x + ((size_t)y)*res.mapW] };
 
-      if(map[(size_t)cx + ((size_t)cy)*res.mapW] != ' ') {
-        size_t wallHeight{ res.winH/(c*cos(rayAngle - player.viewAngle)) };
-        uint32_t wallColour{ textures.getWallType(map[(size_t)cx + ((size_t)cy)*res.mapW]) };
+      if(symbol == ' ') {
+        size_t xPx{ x*res.rectW }, yPx{ y*res.rectH };
+        td[xPx + yPx*res.winH] = packColour(0, 255, 255);
 
-        drawRect(pv, res.winW, res.winH, i, res.winH/2 - wallHeight/2, 1,
-                 wallHeight, wallColour);
-
-        break;
+        continue;
       }
 
-      size_t xPx{ cx*res.rectW }, yPx{ cy*res.rectH };
-      td[xPx + yPx*res.winH] = packColour(0, 255, 255);
+      size_t wallHeight{ res.winH/(c*cos(rayAngle - player.viewAngle)) };
+
+      textures.drawTextureSlice(symbol, x, y, res.winW/2 - wallHeight/2, wallHeight,
+                                pv, res.winW, i);
+
+      break;
     }
   }
 
   writePPMImg(tdFilename, td, res.winW, res.winH);
   writePPMImg(pvFilename, pv, res.winW, res.winH);
-}
-
-void animate360View() {
-
 }

@@ -1,4 +1,5 @@
 #include "rendering_utils.hpp"
+#include "Textures.hpp"
 #include "user_specs.hpp"
 #include <iostream>
 #include <fstream>
@@ -34,10 +35,10 @@ int main() {
                      "3555533333333333";
   assert(sizeof(map) == res.mapW*res.mapH + 1);
 
-  TexArray textures{ 0, 0, std::vector<uint32_t>() };
-  loadTexture("../resources/textures.png", textures);
+  Textures textures;
+  if(!textures.loadTextures("./resources/walltextures.png")) { return -1; }
 
-  Player player{ 3.456, 2.345, degToRad(60.0), 1.523 };
+  Player player{ 3.456, 2.345, M_PI/3.0, 1.523 };
   std::vector<Sprite> sprites{ {0, 1.834, 8.765}, {1, 5.323, 5.365}, {1, 4.123, 10.265} };
 
   for(size_t frame{ 0 }; frame < 360; ++frame) {
@@ -45,10 +46,11 @@ int main() {
     topdownName << "topdown" << std::setfill('0') << std::setw(5) << frame << ".ppm";
     playerviewName << "playerview" << std::setfill('0') << std::setw(5) << frame << ".ppm";
 
-    player.viewAngle += 2*M_PI/360;
+    player.viewAngle += 2.0*M_PI/360.0;
 
+    //renderPlayerView(frameBuffer, res, map, player, playerviewName.str(), textures);
     renderDualView(topDownMap, frameBuffer, res, map, player,
-                   topdownName.str(), playerviewName.str());
+                   topdownName.str(), playerviewName.str(), textures);
   }
 
   return 0;
