@@ -17,7 +17,7 @@ uint32_t Textures::getPx(const char symbol, const size_t x, const size_t y) {
   return pxMap[(symbol - '0')*size + x + y*w];
 }
 
-// this shit is a little confusing, explanation below:
+// this function is a little confusing, explanation below:
 /**
  * 1. xOffset and yOffset are calculated to show the distance from the nearest gridline.
  *    The seemingly arbitrary 0.5 added to x and y is there to correct for rounding so

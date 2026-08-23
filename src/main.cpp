@@ -1,4 +1,5 @@
 #include "rendering_utils.hpp"
+#include "rendering.hpp"
 #include "Textures.hpp"
 #include "user_specs.hpp"
 #include <iostream>
