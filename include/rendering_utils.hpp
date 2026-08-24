@@ -4,7 +4,6 @@
 #include "structs.h"
 #include "Textures.hpp"
 #include "Map.hpp"
-#include "user_specs.hpp"
 #include <cstdint>
 #include <vector>
 #include <string>

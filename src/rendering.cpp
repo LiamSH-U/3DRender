@@ -67,7 +67,7 @@ void renderPlayerView(FrameBuffer& fb, Map& map, const Player player,
 
       depthArr[i] = c*cos(rayAngle - player.viewAngle);
 
-      size_t wallHeight{ fb.h/(c*cos(rayAngle - player.viewAngle)) };
+      size_t wallHeight{ std::min(fb.h, (size_t)(fb.h/(c*cos(rayAngle - player.viewAngle)))) };
       wallTex.drawTextureSlice(symbol, x, y, fb.h/2 - wallHeight/2, wallHeight, fb, i);
 
       break;

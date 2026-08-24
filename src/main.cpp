@@ -36,7 +36,7 @@ int main() {
     return -1;
   }
 
-  Player player{ 3.456, 2.345, M_PI/3.0, 1.523 };
+  Player player{ 4.01358, 14.0018, M_PI/3.0, 1.523 }; // x: 3.456, y: 2.345
 
   std::vector<Sprite> sprites{ {2, 3.253, 3.812, 0.0}, {0, 1.834, 8.765, 0.0},
                                {1, 5.323, 5.365, 0.0}, {1, 4.123, 10.265, 0.0} };
@@ -138,11 +138,11 @@ int main() {
       }
     }
 
-    player.viewAngle += (double)playerTurn*0.02;
+    player.viewAngle += (double)playerTurn*0.03;
     double newX{ player.xPos + (playerXWalk*cos(player.viewAngle + M_PI/2.0) +
-                                playerYWalk*cos(player.viewAngle))*0.02 },
+                                playerYWalk*cos(player.viewAngle))*0.03 },
            newY{ player.yPos + (playerYWalk*sin(player.viewAngle) +
-                                playerXWalk*sin(player.viewAngle + M_PI/2.0))*0.02 };
+                                playerXWalk*sin(player.viewAngle + M_PI/2.0))*0.03 };
 
     bool newPos{ false };
     double exclusion = 2.5/32;
@@ -165,9 +165,9 @@ int main() {
       std::sort(sprites.begin(), sprites.end(), d);
     }
 
-    // std::cerr << "xPos: " << player.xPos << ' '
-    //           << "yPos: " << player.yPos << '\n'
-    //           << std::endl;
+    std::cerr << "xPos: " << player.xPos << ' '
+              << "yPos: " << player.yPos << '\n'
+              << std::endl;
 
     renderPlayerView(fb, map, player, sprites, wallTex, enemiesTex);
     SDL_UpdateTexture(fbTexture, NULL, reinterpret_cast<void*>(fb.buffer.data()), fb.w*4);

@@ -2,7 +2,6 @@
 
 #include "structs.h"
 #include "FrameBuffer.hpp"
-#include "user_specs.hpp"
 #include <cassert>
 #include <iostream>
 #include <fstream>
