@@ -1,5 +1,6 @@
 bugs in need of fixing:
-  - crashing due to looking too closely at walls
+  - wall warping probably because entire wall texture is always being copied by drawTextureSlice;
+    need to think of a way to read from only portions of texture slices
 
 features to test:
   - make sure maps can be sizes other than 16x16

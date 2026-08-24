@@ -27,7 +27,7 @@ int main() {
 
   FrameBuffer fb(res.winW, res.winH);
 
-  Map map(res.mapW, res.mapH, fb, map_empty);
+  Map map(res.mapW, res.mapH, fb, map_default);
 
   Textures wallTex;
   Textures enemiesTex;
@@ -36,7 +36,7 @@ int main() {
     return -1;
   }
 
-  Player player{ 4.01358, 14.0018, M_PI/3.0, 1.523 }; // x: 3.456, y: 2.345
+  Player player{ 3.456, 2.345, M_PI/3.0, 1.523 };
 
   std::vector<Sprite> sprites{ {2, 3.253, 3.812, 0.0}, {0, 1.834, 8.765, 0.0},
                                {1, 5.323, 5.365, 0.0}, {1, 4.123, 10.265, 0.0} };
@@ -145,7 +145,7 @@ int main() {
                                 playerXWalk*sin(player.viewAngle + M_PI/2.0))*0.03 };
 
     bool newPos{ false };
-    double exclusion = 2.5/32;
+    double exclusion = 1.0/4.0;
     if(newX >= exclusion && newX < (double)map.mapW - exclusion &&
        newY >= exclusion && newY < (double)map.mapH - exclusion) {
       if(map.getSymbol((size_t)newX, (size_t)player.yPos) == ' ') {
