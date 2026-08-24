@@ -67,6 +67,9 @@ gifs:
 run:
 	./build/release/saveimg
 
+rundbg:
+	./build/debug/saveimg_dbg
+
 animation: run gifs
 
 clean:

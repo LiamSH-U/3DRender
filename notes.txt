@@ -1,0 +1,9 @@
+bugs in need of fixing:
+  - crashing due to looking too closely at walls
+
+features to test:
+  - make sure maps can be sizes other than 16x16
+
+features to consider adding (order of importance):
+  - user customisation of resolution
+  - map editor

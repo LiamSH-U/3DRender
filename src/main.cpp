@@ -3,6 +3,7 @@
 #include "Textures.hpp"
 #include "FrameBuffer.hpp"
 #include "Map.hpp"
+#include "maps.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -12,6 +13,7 @@
 #include <cmath>
 #include <algorithm>
 #include <SDL2/SDL.h>
+#include <cstdlib>
 
 struct DistSort {
   bool operator()(Sprite& s1, Sprite& s2) { return s1.distToPlayer >= s2.distToPlayer; }
@@ -25,23 +27,7 @@ int main() {
 
   FrameBuffer fb(res.winW, res.winH);
 
-  std::string mapS = "0000111122223333"\
-                     "1              3"\
-                     "1      22222   3"\
-                     "1     1        3"\
-                     "1     1  0000002"\
-                     "1     1        2"\
-                     "1   40000      2"\
-                     "1   4   00000  2"\
-                     "5   4   0      1"\
-                     "5   4   0  00001"\
-                     "5       0      1"\
-                     "5       0      1"\
-                     "3       0      3"\
-                     "3 2222222      3"\
-                     "3              3"\
-                     "3555533333333333";
-  Map map(res.mapW, res.mapH, fb, mapS);
+  Map map(res.mapW, res.mapH, fb, map_empty);
 
   Textures wallTex;
   Textures enemiesTex;
@@ -61,7 +47,6 @@ int main() {
   std::sort(sprites.begin(), sprites.end(), d);
 
   std::vector<double> depthArr(res.winW);
-
 
   renderPlayerView(fb, map, player, sprites, wallTex, enemiesTex);
 
@@ -86,9 +71,10 @@ int main() {
   SDL_UpdateTexture(fbTexture, NULL, reinterpret_cast<void*>(fb.buffer.data()), fb.w*4);
 
   bool running{ true };
-  int playerYWalk{ 0 }, playerXWalk{ 0 }, playerTurn{ 0 };
+  double playerYWalk{ 0 }, playerXWalk{ 0 }, playerTurn{ 0 };
   SDL_Event event;
   while(running) {
+    system("clear");
 
     if(SDL_PollEvent(&event)) {
       switch(event.type) {
@@ -119,16 +105,24 @@ int main() {
 
         case SDL_KEYDOWN:
           switch(event.key.keysym.sym) {
-            case 'w': playerYWalk = 1;
+            case 'w': 
+              if(playerXWalk == 0) { playerYWalk = 1; }
+              else { playerYWalk = std::sqrt(1.0/2.0); }
             break;
 
-            case 'a': playerXWalk = -1;
+            case 'a':
+              if(playerYWalk == 0) { playerXWalk = -1; }
+              else { playerXWalk = -std::sqrt(1.0/2.0); }
             break;
 
-            case 's': playerYWalk = -1;
+            case 's':
+              if(playerXWalk == 0) { playerYWalk = -1; }
+              else { playerYWalk = -std::sqrt(1.0/2.0); }
             break;
 
-            case 'd': playerXWalk = 1;
+            case 'd':
+              if(playerYWalk == 0) { playerXWalk = 1; }
+              else { playerXWalk = std::sqrt(1.0/2.0); }
             break;
 
             case SDLK_LEFT: playerTurn = -1;
@@ -144,17 +138,16 @@ int main() {
       }
     }
 
-    player.viewAngle += (double)playerTurn*0.01;
+    player.viewAngle += (double)playerTurn*0.02;
     double newX{ player.xPos + (playerXWalk*cos(player.viewAngle + M_PI/2.0) +
                                 playerYWalk*cos(player.viewAngle))*0.02 },
            newY{ player.yPos + (playerYWalk*sin(player.viewAngle) +
                                 playerXWalk*sin(player.viewAngle + M_PI/2.0))*0.02 };
-    // double newX{ player.xPos + playerWalk*cos(player.viewAngle) },
-    //        newY{ player.yPos + playerWalk*sin(player.viewAngle) };
 
     bool newPos{ false };
-    if(newX >= 0 && newX < (double)map.mapW &&
-       newY >= 0 && newY < (double)map.mapH) {
+    double exclusion = 2.5/32;
+    if(newX >= exclusion && newX < (double)map.mapW - exclusion &&
+       newY >= exclusion && newY < (double)map.mapH - exclusion) {
       if(map.getSymbol((size_t)newX, (size_t)player.yPos) == ' ') {
         player.xPos = newX;
         newPos = true;
@@ -172,9 +165,9 @@ int main() {
       std::sort(sprites.begin(), sprites.end(), d);
     }
 
-    std::cerr << "xPos: " << player.xPos << ' '
-              << "yPos: " << player.yPos << '\n'
-              << std::endl;
+    // std::cerr << "xPos: " << player.xPos << ' '
+    //           << "yPos: " << player.yPos << '\n'
+    //           << std::endl;
 
     renderPlayerView(fb, map, player, sprites, wallTex, enemiesTex);
     SDL_UpdateTexture(fbTexture, NULL, reinterpret_cast<void*>(fb.buffer.data()), fb.w*4);
