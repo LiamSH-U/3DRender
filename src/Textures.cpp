@@ -5,8 +5,10 @@
 #include <iostream>
 #include <cstdint>
 #include <vector>
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include <SDL2/SDL.h>
+#include <cassert>
+// #define STB_IMAGE_IMPLEMENTATION
+// #include "stb_image.h"
 
 Textures::Textures()
   : w(0), h(0), size(0), count(0), pxMap(std::vector<uint32_t>()) {
@@ -39,30 +41,41 @@ size_t Textures::getWallXCoord(const double x, const double y) {
   return (size_t)tex;
 }
 
-bool Textures::loadTextures(const std::string filename) {
-  int numChans;
-  unsigned char* img = stbi_load(filename.c_str(), &w, &h, &numChans, 0);
-  if(!img) {
-    std::cerr << "Error: textures failed to load" << std::endl;
-
-    return false;
-  }
-  else if(numChans != 4) {
-    std::cerr << "Error: texture must be a 32-bit image" << std::endl;
-    stbi_image_free(img);
+bool Textures::loadTextures(const std::string filename, const uint32_t format) {
+  SDL_Surface* tmp{ SDL_LoadBMP(filename.c_str()) };
+  if(!tmp) {
+    std::cerr << "Error: " << SDL_GetError() << std::endl;
 
     return false;
   }
 
+  SDL_Surface* surface = SDL_ConvertSurfaceFormat(tmp, format, 0);
+  SDL_FreeSurface(tmp);
+  if(!surface) {
+    std::cerr << "Error: " << SDL_GetError() << std::endl;
+
+    return false;
+  }
+
+  int surfaceW{ surface->w }, surfaceH{ surface->h };
+
+  if(surfaceW*4 != surface->pitch) {
+    std::cerr << "Error: the texture must be a 32-bit image" << std::endl;
+
+    return false;
+  }
+  else if(surfaceW != surfaceH*(int)(surfaceW/surfaceH)) {
+    std::cerr << "Error: the texture file must consist of n square textures"
+              << "packed horizontally" << std::endl;
+    
+    return false;
+  }
+
+  w = surfaceW;
+  h = surfaceH;
   count = w/h;
   size = w/count;
-  if(w != h*(int)count) {
-    std::cerr << "Error: texture file must contain n square textures packed horizontally"
-              << std::endl;
-    stbi_image_free(img);
-
-    return false;
-  }
+  uint8_t* img{ reinterpret_cast<uint8_t*>(surface->pixels) };
 
   pxMap.resize(w*h);
   for(size_t j{ 0 }; j < h; ++j) {
@@ -73,7 +86,7 @@ bool Textures::loadTextures(const std::string filename) {
     }
   }
 
-  stbi_image_free(img);
+  SDL_FreeSurface(surface);
 
   return true;
 }
@@ -83,7 +96,7 @@ uint32_t Textures::getWallColour(const char symbol) { return pxMap[(symbol-'0')*
 void Textures::drawTextureSlice(const char symbol, const double x, const double y,
                                 const size_t colStart, const size_t colHeight,
                                 FrameBuffer& fb, const size_t imgX) {
-  size_t textureXCoord = getWallXCoord(x, y);
+  size_t textureXCoord{ getWallXCoord(x, y) };
 
   for(size_t i{ 0 }; i < colHeight; ++i) {
     fb.setPx(imgX, i + colStart, getPx(symbol, textureXCoord, (i*size)/colHeight));

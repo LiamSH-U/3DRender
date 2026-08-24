@@ -17,12 +17,15 @@
 
 uint32_t packColour(const uint8_t r, const uint8_t g, const uint8_t b, const uint8_t a = 255);
 
-void unpackColour(const uint32_t &color, uint8_t &r, uint8_t &g, uint8_t &b, uint8_t &a);
+void unpackColour(const uint32_t &colour, uint8_t &r, uint8_t &g, uint8_t &b, uint8_t &a);
 
 // should probably change this to take Resolutions& instead of 4 extra args
 void drawRect(FrameBuffer& fb, const size_t xPos, const size_t yPos,
               const size_t rectW, const size_t rectH, const uint32_t colour);
 
 void writePPMImg(const std::string filename, const FrameBuffer& fb);
+
+void drawSprite(const Sprite& sprite, FrameBuffer& fb, const Player& player,
+                Textures& spriteTex, std::vector<double>& depthArr);
 
 #endif

@@ -2,6 +2,7 @@ CXX = g++
 
 CXXFLAGS = -Wall -Wextra
 CPPFLAGS = -Iinclude
+LFLAGS = -lSDL2
 
 PROGRAM = saveimg
 
@@ -30,7 +31,7 @@ release: $(REL_DIR)/$(PROGRAM)
 
 $(REL_DIR)/$(PROGRAM): $(REL_OBJS)
 	@mkdir -p $(@D)
-	$(CXX) $(CXXFLAGS) -O3 $^ -o $@
+	$(CXX) $(CXXFLAGS) -O3 $^ $(LFLAGS) -o $@
 
 $(REL_OBJ_DIR)/%.o: src/%.cpp
 	@mkdir -p $(@D) $(REL_DEP_DIR)
@@ -41,7 +42,7 @@ debug: $(DBG_DIR)/$(PROGRAM)_dbg
 
 $(DBG_DIR)/$(PROGRAM)_dbg: $(DBG_OBJS)
 	@mkdir -p $(@D)
-	$(CXX) $(CXXFLAGS) -g3 $^ -o $@
+	$(CXX) $(CXXFLAGS) -g3 $^ $(LFLAGS) -o $@
 
 $(DBG_OBJ_DIR)/%_dbg.o: src/%.cpp
 	@mkdir -p $(@D) $(DBG_DEP_DIR)

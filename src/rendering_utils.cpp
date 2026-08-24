@@ -12,11 +12,11 @@ uint32_t packColour(const uint8_t r, const uint8_t g, const uint8_t b, const uin
   return r + (g << 8) + (b << 16) + (a << 24);
 }
 
-void unpackColour(const uint32_t &color, uint8_t &r, uint8_t &g, uint8_t &b, uint8_t &a) {
-  r = color & 255;
-  g = (color >> 8) & 255;
-  b = (color >> 16) & 255;
-  a = (color >> 24) & 255;
+void unpackColour(const uint32_t &colour, uint8_t &r, uint8_t &g, uint8_t &b, uint8_t &a) {
+  r = colour & 255;
+  g = (colour >> 8) & 255;
+  b = (colour >> 16) & 255;
+  a = (colour >> 24) & 255;
 }
 
 void drawRect(FrameBuffer& fb, const size_t xPos, const size_t yPos,
@@ -43,4 +43,34 @@ void writePPMImg(const std::string filename, const FrameBuffer& fb) {
   }
 }
 
-void drawSprite(Sprite& sprite, FrameBuffer& fb);
+void drawSprite(const Sprite& sprite, FrameBuffer& fb, const Player& player,
+                Textures& spriteTex, std::vector<double>& depthArr) {
+  double yDiff{ sprite.yPos - player.yPos }, xDiff{ sprite.xPos - player.xPos };
+  double spriteDist{ std::sqrt(pow(xDiff, 2) + pow(yDiff, 2)) };
+
+  double spriteDir{ atan2(yDiff, xDiff) };
+  while(spriteDir - player.viewAngle >  M_PI) { spriteDir -= 2*M_PI; }
+  while(spriteDir - player.viewAngle < -M_PI) { spriteDir += 2*M_PI; }
+  
+  size_t spriteSize = std::min(1000, (int)(fb.h/spriteDist));
+
+  int hOffset{ (spriteDir - player.viewAngle)*fb.w/player.FOV + fb.w/2 - spriteSize/2 },
+      vOffset{ fb.h/2 - spriteSize/2 };
+  
+  for(size_t i{ 0 }; i < spriteSize; ++i) {
+    if(hOffset + (int)i < 0 || hOffset + i >= fb.w) { continue; }
+    else if(depthArr[hOffset + i] < spriteDist) { continue; }
+    
+    for(size_t j{ 0 }; j < spriteSize; ++j) {
+      if(vOffset + (int)j < 0 || vOffset + j >= fb.h) { continue; }
+
+      size_t x{ (double)i/(double)spriteSize*(double)spriteTex.textureSize() },
+             y{ (double)j/(double)spriteSize*(double)spriteTex.textureSize() };
+      uint32_t colour{ spriteTex.getPx(sprite.textureID + '0', x, y) };
+      uint8_t r, g, b, a;
+      unpackColour(colour, r, g, b, a);
+
+      if(a > 128) { fb.setPx(hOffset + i, vOffset + j, colour); }
+    }
+  }
+}

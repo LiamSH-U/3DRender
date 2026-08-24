@@ -10,9 +10,13 @@ class Textures {
 public:
   Textures();
 
+  uint32_t getPx(const char symbol, const size_t x, const size_t y);
+
+  size_t getWallXCoord(const double x, const double y);
+
   size_t textureSize();
 
-  bool loadTextures(const std::string filename);
+  bool loadTextures(const std::string filename, const uint32_t format);
 
   uint32_t getWallColour(const char symbol);
 
@@ -24,10 +28,6 @@ private:
   int w, h;
   size_t size, count;
   std::vector<uint32_t> pxMap;
-
-  uint32_t getPx(const char symbol, const size_t x, const size_t y);
-
-  size_t getWallXCoord(const double x, const double y);
 };
 
 #endif

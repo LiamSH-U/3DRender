@@ -11,7 +11,7 @@ struct Player {
 
 struct Sprite {
   size_t textureID;
-  double xPos, yPos;
+  double xPos, yPos, distToPlayer;
 };
 
 struct Resolutions {
