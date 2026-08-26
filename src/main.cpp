@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <SDL2/SDL.h>
 #include <cstdlib>
+#include <chrono>
 
 struct DistSort {
   bool operator()(Sprite& s1, Sprite& s2) { return s1.distToPlayer >= s2.distToPlayer; }
@@ -74,7 +75,7 @@ int main() {
   double playerYWalk{ 0 }, playerXWalk{ 0 }, playerTurn{ 0 };
   SDL_Event event;
   while(running) {
-    system("clear");
+    // system("clear"); // debugging
 
     if(SDL_PollEvent(&event)) {
       switch(event.type) {
@@ -138,14 +139,15 @@ int main() {
       }
     }
 
-    player.viewAngle += (double)playerTurn*0.03;
+    player.viewAngle += (double)playerTurn*0.01;
     double newX{ player.xPos + (playerXWalk*cos(player.viewAngle + M_PI/2.0) +
-                                playerYWalk*cos(player.viewAngle))*0.03 },
+                                playerYWalk*cos(player.viewAngle))*0.01 },
            newY{ player.yPos + (playerYWalk*sin(player.viewAngle) +
-                                playerXWalk*sin(player.viewAngle + M_PI/2.0))*0.03 };
+                                playerXWalk*sin(player.viewAngle + M_PI/2.0))*0.01 };
 
     bool newPos{ false };
-    double exclusion = 1.0/4.0;
+    double exclusion = 0.0; // seemingly-futile attempt to prevent players
+                            // squishing themselves through walls
     if(newX >= exclusion && newX < (double)map.mapW - exclusion &&
        newY >= exclusion && newY < (double)map.mapH - exclusion) {
       if(map.getSymbol((size_t)newX, (size_t)player.yPos) == ' ') {
@@ -165,9 +167,9 @@ int main() {
       std::sort(sprites.begin(), sprites.end(), d);
     }
 
-    std::cerr << "xPos: " << player.xPos << ' '
-              << "yPos: " << player.yPos << '\n'
-              << std::endl;
+    // std::cerr << "xPos: " << player.xPos << ' '
+    //           << "yPos: " << player.yPos << '\n'
+    //           << std::endl;
 
     renderPlayerView(fb, map, player, sprites, wallTex, enemiesTex);
     SDL_UpdateTexture(fbTexture, NULL, reinterpret_cast<void*>(fb.buffer.data()), fb.w*4);

@@ -98,7 +98,16 @@ void Textures::drawTextureSlice(const char symbol, const double x, const double 
                                 FrameBuffer& fb, const size_t imgX) {
   size_t textureXCoord{ getWallXCoord(x, y) };
 
-  for(size_t i{ 0 }; i < colHeight; ++i) {
-    fb.setPx(imgX, i + colStart, getPx(symbol, textureXCoord, (i*size)/colHeight));
+  if(colHeight > fb.h) {
+    for(size_t i{ 0 }; i < fb.h; ++i) {
+      size_t vOffset{ (colHeight - fb.h)/2 };
+      fb.setPx(imgX, i, getPx(symbol, textureXCoord, ((i+vOffset)*size)/colHeight));
+    }
   }
+  else {
+    for(size_t i{ 0 }; i < colHeight; ++i) {
+      fb.setPx(imgX, i + colStart, getPx(symbol, textureXCoord, (i*size)/colHeight));
+    }
+  }
+  
 }
